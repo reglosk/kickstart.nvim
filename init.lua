@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -102,7 +102,7 @@ vim.g.have_nerd_font = false
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -194,6 +194,29 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- USER Keymaps
+vim.keymap.set({ 'n', 'v' }, '<S-l>', '$', { desc = 'move to end of line' })
+vim.keymap.set({ 'n', 'v' }, '<S-h>', '^', { desc = 'move to beginning of line' })
+
+vim.keymap.set('n', 'o', 'o<Esc>', { desc = 'adds a line below and stays in normal mode' })
+vim.keymap.set('n', '<S-o>', '<S-o><Esc>', { desc = 'adds a line above and stays in normal mode' })
+
+--Terminal Mapping
+
+vim.keymap.set('n', '<leader>tr', '<cmd>sp | terminal<cr>', { desc = 'Terminal Ho[R]izontal Split' })
+
+vim.keymap.set('n', '<leader>tv', '<cmd>vs | terminal<cr>', { desc = 'Terminal [V]ertical Split' })
+-- vim.keymap.set({ 'n', 'v' }, '<C-/>', 'gcc', { desc = 'toggle comments' })
+
+--LazyGit
+vim.keymap.set('n', '<leader>lg', '<cmd>LazyGit<cr>', { desc = 'LazyGit Current File' })
+vim.keymap.set('n', '<leader>lf', '<cmd>LazyGitFilter<cr>', { desc = 'LazyGitFilter Current File' })
+vim.keymap.set('n', '<leader>l', '<leader>l', { desc = '[L]azygit' })
+
+vim.keymap.set('n', '<C-n>', '<cmd>Neotree source=filesystem toggle position=left<cr>')
+
+--NVIM Neo Tree
+
 -- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -240,7 +263,55 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-
+  {
+    'kdheepak/lazygit.nvim',
+    lazy = true,
+    cmd = {
+      'LazyGit',
+      'LazyGitConfig',
+      'LazyGitCurrentFile',
+      'LazyGitFilter',
+      'LazyGitFilterCurrentFile',
+    },
+    dependencies = { 'nvim-lua/plenary.nvim' },
+  },
+  {
+    'numToStr/Comment.nvim',
+    opts = {
+      toggler = {
+        line = '<C-/>',
+      },
+    },
+  },
+  {
+    'saghen/blink.cmp',
+    dependencies = 'rafamadriz/friendly-snippets',
+    version = 'v0.*',
+  },
+  {
+    'nvim-neo-tree/neo-tree.nvim',
+    branch = 'v3.x',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
+      'MunifTanjim/nui.nvim',
+    },
+    lazy = false,
+    opts = {
+      filesystem = {
+        filtered_items = {
+          hide_hidden = false,
+        },
+      },
+    },
+  },
+  {
+    'windwp/nvim-autopairs',
+    opts = {
+      event = 'InsertEnter',
+      config = true,
+    },
+  },
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
   -- keys can be used to configure plugin behavior/loading/etc.
@@ -460,6 +531,7 @@ require('lazy').setup({
   },
 
   -- LSP Plugins
+  {},
   {
     -- `lazydev` configures Lua LSP for your Neovim config, runtime and plugins
     -- used for completion, annotations and signatures of Neovim apis
@@ -482,7 +554,7 @@ require('lazy').setup({
       { 'williamboman/mason.nvim', opts = {} },
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
-
+      {},
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
 
@@ -718,7 +790,7 @@ require('lazy').setup({
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
-        ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
+        ensure_installed = { 'tsserver' }, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
         handlers = {
           function(server_name)
@@ -843,7 +915,7 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<Enter>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -990,7 +1062,7 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
