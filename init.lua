@@ -177,7 +177,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+vim.keymap.set('t', '<C-\\><C-\\>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
@@ -202,19 +202,30 @@ vim.keymap.set('n', 'o', 'o<Esc>', { desc = 'adds a line below and stays in norm
 vim.keymap.set('n', '<S-o>', '<S-o><Esc>', { desc = 'adds a line above and stays in normal mode' })
 
 --Terminal Mapping
-
 vim.keymap.set('n', '<leader>tr', '<cmd>sp | terminal<cr>', { desc = 'Terminal Ho[R]izontal Split' })
-
 vim.keymap.set('n', '<leader>tv', '<cmd>vs | terminal<cr>', { desc = 'Terminal [V]ertical Split' })
 -- vim.keymap.set({ 'n', 'v' }, '<C-/>', 'gcc', { desc = 'toggle comments' })
 
 --LazyGit
-vim.keymap.set('n', '<leader>lg', '<cmd>LazyGit<cr>', { desc = 'LazyGit Current File' })
-vim.keymap.set('n', '<leader>lf', '<cmd>LazyGitFilter<cr>', { desc = 'LazyGitFilter Current File' })
+vim.keymap.set('n', '<leader>lg', '<cmd>LazyGit<cr>', { desc = 'Lazy[G]it Current File' })
+vim.keymap.set('n', '<leader>lf', '<cmd>LazyGitFilter<cr>', { desc = 'LazyGitFilter Current [F]ile' })
 vim.keymap.set('n', '<leader>l', '<leader>l', { desc = '[L]azygit' })
 
 vim.keymap.set('n', '<C-n>', '<cmd>Neotree source=filesystem toggle position=left<cr>')
 
+--Custom Command Scripts
+vim.keymap.set({ 'n', 'v' }, "<leader>d'", "di'pF'Xx", { desc = "[D]elete ['] Qoutes" })
+vim.keymap.set({ 'n', 'v' }, '<leader>d"', 'di"pF"Xx', { desc = '[D]elete ["] Qoutes' })
+vim.keymap.set('n', 'dL', 'd$')
+vim.keymap.set('n', 'dH', 'd^')
+
+--tabstops
+vim.opt['tabstop'] = 4
+vim.opt['shiftwidth'] = 4
+
+--wrapping
+vim.o.wrap = true
+vim.o.linebreak = true
 --NVIM Neo Tree
 
 -- NOTE: Some terminals have coliding keymaps or are not able to send distinct keycodes
@@ -263,6 +274,16 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  {
+    'kr40/nvim-macros',
+    cmd = { 'MacroSave', 'MacroYank', 'MacroSelect', 'MacroDelete' },
+    opts = {
+      json_file_path = vim.fs.normalize(vim.fn.stdpath 'config' .. '/macros.json'),
+      default_macro_register = 'q',
+      json_formatter = 'jq',
+    },
+  },
+
   {
     'kdheepak/lazygit.nvim',
     lazy = true,
@@ -741,7 +762,12 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = {
+          cmd = { 'clangd', '--background-index', '--clang-tidy', '--log=verbose' },
+          init_options = {
+            fallbackFlags = { 'std=c++20' },
+          },
+        },
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -790,7 +816,7 @@ require('lazy').setup({
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
-        ensure_installed = { 'tsserver' }, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
+        ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
         automatic_installation = false,
         handlers = {
           function(server_name)
@@ -842,7 +868,8 @@ require('lazy').setup({
         -- python = { "isort", "black" },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        javascript = { 'prettierd', 'prettier', stop_after_first = true },
+        typescript = { 'prettierd', 'prettier', stop_after_first = true },
       },
     },
   },
@@ -888,6 +915,7 @@ require('lazy').setup({
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
+
       luasnip.config.setup {}
 
       cmp.setup {
@@ -902,6 +930,7 @@ require('lazy').setup({
         -- chosen, you will need to read `:help ins-completion`
         --
         -- No, but seriously. Please read `:help ins-completion`, it is really good!
+        --
         mapping = cmp.mapping.preset.insert {
           -- Select the [n]ext item
           ['<C-n>'] = cmp.mapping.select_next_item(),
@@ -915,7 +944,7 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<Enter>'] = cmp.mapping.confirm { select = true },
+          ['<C-y>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -1063,11 +1092,11 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
